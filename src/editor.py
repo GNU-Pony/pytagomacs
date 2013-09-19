@@ -142,6 +142,8 @@ class TextArea():
     def initialise(self, initalise_terminal):
         '''
         Initialise terminal and TTY settings
+        
+        @param  initalise_terminal:bool  Whether to initialise the terminal, should only be down if it is not already
         '''
         self.initalise_terminal = initalise_terminal
         if initalise_terminal:
