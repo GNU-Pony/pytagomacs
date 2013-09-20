@@ -34,7 +34,6 @@ from line import *
 
 
 
-## TODO  everything should not be redraw when pressing up an down
 ## TODO  colours should be configurable with rc file
 ## TODO  ring limits should be configurable with rc file
 ## TODO  widthless characters should be ignored when calculating the size a text
@@ -278,12 +277,16 @@ class TextArea():
         
         def ensure_y():
             nonlocal stored
+            updates = False
             if self.y < self.offy:
                 self.offy = self.y
+                updates = True
             if self.y - self.offy > self.height - 3:
                 self.offy = self.y - self.height + 3
-            update_status()
-            redraw()
+                updates = True
+            if updates:
+                update_status()
+                redraw()
         
         def letter_type(char): ## XXX how do we do this with unicode support
             return (char in string.whitespace) or (char in string.punctuation)
