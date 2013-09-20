@@ -109,6 +109,18 @@ class Jump():
 ##    should not be a timer waits for the user to idle.
 ## 
 
+## Editing methods in Line to wrap for undo history
+# copy(self):bool
+# cut(self):bool
+# kill(self):bool
+# delete(self):bool
+# erase(self):bool
+# yank(self):bool
+# yank_cycle(self):bool
+# move_point(self, delta):bool
+# swap_mark(self):bool
+# override(self, insert, override = True):void
+
 class TextArea():
     '''
     GNU Emacs alike text area
