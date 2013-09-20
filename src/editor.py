@@ -51,17 +51,21 @@ _yank, _yank_cycle, _move_point = Line.yank, Line.yank_cycle, Line.move_point
 _swap_mark, _override = Line.swap_mark, Line.override
 
 ## Editing methods to wrap for undo history
-def break_edit(self, func):
-    return func(self)
-
 def full_edit(self, func):
-    return func(self)
+    # TODO commit changes, if any
+    rc = func(self)
+    # TODO commit changes, if any
+    # TODO reset
+    return rc
 
 def partial_edit(self, func, with_return = True):
+    # TODO commit changes, if any, if one second has elapsed, and then reset
     if with_return:
         return func(self)
     else:
         func(self)
+
+break_edit = lambda self, func : full_edit(self, func)
 
 Line.copy       = lambda self :   break_edit(self, _copy)
 Line.cut        = lambda self :    full_edit(self, _cut)
@@ -357,6 +361,7 @@ class TextArea():
             elif d == ctrl('Y'):  edit(lambda L : L.yank(),  _('Killring is empty'))
             elif d == ctrl('R'):  self.editring.change_direction()
             elif d in (ctrl('_'), ctrl('U')):
+                ## TODO history break 
                 if self.editring.is_empty():
                     self.alert(_('Nothing to undo'))
                 else:
