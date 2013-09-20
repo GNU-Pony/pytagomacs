@@ -121,6 +121,19 @@ class Jump():
 # swap_mark(self):bool
 # override(self, insert, override = True):void
 
+_copy, _cut, _kill, _delete, _erase = Line.copy, Line.cut, Line.kill, Line.delete, line.erase
+_yank, _yank_cycle, _move_point = Line.yank, Line.yank_cycle, Line.move_point
+_swap_mark, _override = Line.swap_mark, Line.operride
+
+def full_edit(self, func):
+    return func(self)
+
+Line.copy = lambda self : full_edit(self, _copy)
+Line.cut = lambda self : full_edit(self, _cut)
+Line.kill = lambda self : full_edit(self, _kill)
+Line.yank = lambda self : full_edit(self, _yank)
+Line.yank_cycle = lambda self : full_edit(self, _yank_cycle)
+
 class TextArea():
     '''
     GNU Emacs alike text area
