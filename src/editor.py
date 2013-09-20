@@ -29,75 +29,12 @@ _ = gettext.gettext
 
 from killring import *
 from editring import *
+from common import *
 from line import *
 
 
 
-INACTIVE_COLOUR = '34'
-'''
-:str?  The colour of an inactive line
-'''
-
-ACTIVE_COLOUR = '01;34'
-'''
-:str?  The colour of an active line
-'''
-
-SELECTED_COLOUR = '44;37'
-'''
-:str?  The colour of a selected text
-'''
-
-STATUS_COLOUR = '07'
-'''
-:str?  The colour of the status bar
-'''
-
-ALERT_COLOUR = None
-'''
-:str?  The colour of the alert message
-'''
-
-
-atleast = lambda x, minimum : (x is not None) and (x >= minimum)
-'''
-Test that a value is defined and of at least a minimum value
-'''
-
-limit = lambda x_min, x, x_max : min(max(x_min, x), x_max)
-'''
-Limit a value to a closed set
-'''
-
-ctrl = lambda key : chr(ord(key) ^ ord('@'))
-'''
-Return the symbol for a specific letter pressed in combination with Ctrl
-'''
-
-backspace = lambda x : (ord(x) == 127) or (ord(x) == 8)
-'''
-Check if a key stroke is a backspace key stroke
-'''
-
-
-
-class Jump():
-    '''
-    Create a cursor jump that can either be included in a print statement
-    as a string or invoked
-    
-    @param   y:int         The row, 1 based
-    @param   x:int         The column, 1 based
-    @string  :str|()→void  Functor that can be treated as a string for jumping
-    '''
-    def __init__(self, y, x):
-        self.string = '\033[%i;%iH' % (y, x)
-    def __str__(self):
-        return self.string
-    def __call__(self):
-        print(self.string, end = '')
-
-
+## TODO  everything should not be redraw when pressing up an down
 ## TODO  colours should be configurable with rc file
 ## TODO  ring limits should be configurable with rc file
 ## TODO  widthless characters should be ignored when calculating the size a text
@@ -109,30 +46,39 @@ class Jump():
 ##    should not be a timer waits for the user to idle.
 ## 
 
-## Editing methods in Line to wrap for undo history
-# copy(self):bool
-# cut(self):bool
-# kill(self):bool
-# delete(self):bool
-# erase(self):bool
-# yank(self):bool
-# yank_cycle(self):bool
-# move_point(self, delta):bool
-# swap_mark(self):bool
-# override(self, insert, override = True):void
-
-_copy, _cut, _kill, _delete, _erase = Line.copy, Line.cut, Line.kill, Line.delete, line.erase
+_copy, _cut, _kill, _delete, _erase = Line.copy, Line.cut, Line.kill, Line.delete, Line.erase
 _yank, _yank_cycle, _move_point = Line.yank, Line.yank_cycle, Line.move_point
-_swap_mark, _override = Line.swap_mark, Line.operride
+_swap_mark, _override = Line.swap_mark, Line.override
+
+## Editing methods to wrap for undo history
+def break_edit(self, func):
+    return func(self)
 
 def full_edit(self, func):
     return func(self)
 
-Line.copy = lambda self : full_edit(self, _copy)
-Line.cut = lambda self : full_edit(self, _cut)
-Line.kill = lambda self : full_edit(self, _kill)
-Line.yank = lambda self : full_edit(self, _yank)
-Line.yank_cycle = lambda self : full_edit(self, _yank_cycle)
+def partial_edit(self, func, with_return = True):
+    if with_return:
+        return func(self)
+    else:
+        func(self)
+
+Line.copy       = lambda self :   break_edit(self, _copy)
+Line.cut        = lambda self :    full_edit(self, _cut)
+Line.kill       = lambda self :    full_edit(self, _kill)
+Line.yank       = lambda self : partial_edit(self, _yank)
+Line.yank_cycle = lambda self : partial_edit(self, _yank_cycle)
+Line.swap_mark  = lambda self :   break_edit(self, _swap_mark)
+
+def __move_point(self, delta):
+    return break_edit(self, lambda s : _move_point(s, delta))
+Line.move_point = __move_point
+
+def __override(self, insert, override = True):
+    partial_edit(self, lambda s : _override(s, insert, override), False);
+Line.override = __override
+
+
 
 class TextArea():
     '''
