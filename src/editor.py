@@ -466,7 +466,7 @@ class TextArea():
                             if d == '~':  stored = ctrl('A')
                             elif d == ';':
                                 d = sys.stdin.read(1)
-                                if d == '5':    store(sys.stdin.read(1), {'C':-4, 'D':-3, 'A':-1, 'B':-2}) # ctrl
+                                if d == '5':   store(sys.stdin.read(1), {'C':-4, 'D':-3, 'A':-1, 'B':-2}) # ctrl
                                 elif d == '2': # shift
                                     store(sys.stdin.read(1), {'C':ctrl('F'), 'D':ctrl('B')})
                                     if stored is not None:
@@ -485,8 +485,7 @@ class TextArea():
                                 d = sys.stdin.read(1)
                                 if ord('a') <= ord(d.lower()) <= ord('z'): break
                                 if d == '~': break
-                    elif d == 'O':
-                        store(sys.stdin.read(1), {'H':ctrl('A'), 'F':ctrl('E')})
+                    elif d == 'O':  store(sys.stdin.read(1), {'H':ctrl('A'), 'F':ctrl('E')})
                     elif store(d, {'P':-1, 'p':-1, 'N':-2, 'n':-2, 'B':-3, 'b':-3, 'F':-4, 'f':-4}): pass
                     elif d.lower() == 'w':
                         if not self.lines[self.y].copy():
