@@ -153,6 +153,7 @@ class TextArea():
         self.old_stty = self.old_stty.decode('utf-8', 'error')[:-1]
         Popen('stty -icanon -echo -isig -ixon -ixoff'.split(' '), stdout = PIPE).communicate()
     
+    
     def close(self):
         '''
         Restore the terminal to the state before `initialise` as invoked
