@@ -128,6 +128,6 @@ for file in ('$XDG_CONFIG_HOME/%/%rc', '$HOME/.config/%/%rc', '$HOME/.%rc', '/et
             code = rcfile.read().decode('utf8', 'replace') + '\n'
             env = os.environ
             code = compile(code, file, 'exec')
-            exec(code, globals()) # TODO do the globals need to be set explicitly?
+            exec(code, globals())
         break
 
