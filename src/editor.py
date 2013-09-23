@@ -34,8 +34,6 @@ from line import *
 
 
 
-## TODO  colours should be configurable with rc file
-## TODO  ring limits should be configurable with rc file
 ## TODO  widthless characters should be ignored when calculating the size a text
 
 ## TODO  implement undo history

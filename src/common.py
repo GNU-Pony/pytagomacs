@@ -85,3 +85,48 @@ class Jump():
     def __call__(self):
         print(self.string, end = '')
 
+
+def parsefile(file):
+    '''
+    Parse a file name encoded with environment variables
+    
+    @param   file  The encoded file name
+    @return        The target file name, None if the environment variables are not declared
+    '''
+    if '$' in file:
+        buf = ''
+        esc = False
+        var = None
+        for c in file:
+            if esc:
+                buf += c
+                esc = False
+            elif var is not None:
+                if c == '/':
+                    var = os.environ[var] if var in os.environ else ''
+                    if len(var) == 0:
+                        return None
+                    buf += var + c
+                    var = None
+                else:
+                    var += c
+            elif c == '$':
+                var = ''
+            elif c == '\\':
+                esc = True
+            else:
+                buf += c
+        return buf
+    return file
+
+
+for file in ('$XDG_CONFIG_HOME/%/%rc', '$HOME/.config/%/%rc', '$HOME/.%rc', '/etc/%rc'):
+    file = parsefile(file.replace('%', 'pytagomacs'))
+    if (file is not None) and os.path.exists(file):
+        with open(file, 'rb') as rcfile:
+            code = rcfile.read().decode('utf8', 'replace') + '\n'
+            env = os.environ
+            code = compile(code, file, 'exec')
+            exec(code, globals()) # TODO do the globals need to be set explicitly?
+        break
+
