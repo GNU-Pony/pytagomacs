@@ -63,6 +63,11 @@ KILLRING_LIMIT = 50
 :int  The maximum size of the killring
 '''
 
+EDITRING_LIMIT = 100
+'''
+:int  The maximum size of the editring
+'''
+
 
 atleast = lambda x, minimum : (x is not None) and (x >= minimum)
 '''
@@ -203,7 +208,7 @@ class TextArea():
             if height <= 0:  height += int(screen_size[0]) - top  + 1
         self.fields, self.datamap, self.left, self.top, self.width, self.height = fields, datamap, left, top, width - 1, height
         self.innerleft = len(max(self.fields, key = len)) + 3
-        self.killring, self.editring = Killring(limit = KILLRING_LIMIT), Editring()
+        self.killring, self.editring = Killring(limit = KILLRING_LIMIT), Editring(limit = EDITRING_LIMIT)
         data = lambda field : datamap[field] if field in datamap else ''
         self.lines = [Line(self, self.fields[y], data(self.fields[y]), y) for y in range(len(self.fields))]
         self.areawidth = self.width - self.innerleft
