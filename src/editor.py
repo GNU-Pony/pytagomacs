@@ -131,9 +131,6 @@ for file in files:
         config_file = file
         # and stop trying files with lower precedence.
         break
-#g, l = globals(), dict(locals())
-#for key in l:
-#    g[key] = l[key]
 if config_file is not None:
     code = None
     # Read configuration script file
@@ -581,7 +578,7 @@ if __name__ == '__main__': # For testing
         return True
     area = None
     try:
-        area = TextArea(('a be se de e eff ge hå i ji kå ell emm enn o pe ku ärr ess te u ve dubbel-ve eks y säta å ä ö').split(' '), {}, 6, 4, 40, 10)
+        area = TextArea(('a be se de e eff ge hå i ji kå ell emm enn o pe ku ärr ess te u ve dubbel-ve eks y säta å ä ö').split(' '), {}, 6, 4, -6, -4)
         area.initialise(True)
         area.run(phonysaver)
     finally:
