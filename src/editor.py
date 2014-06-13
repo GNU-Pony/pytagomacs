@@ -58,6 +58,11 @@ ALERT_COLOUR = None
 :str?  The colour of the alert message
 '''
 
+KILLRING_LIMIT = 50
+'''
+:int  The maximum size of the killring
+'''
+
 
 atleast = lambda x, minimum : (x is not None) and (x >= minimum)
 '''
@@ -80,6 +85,73 @@ Check if a key stroke is a backspace key stroke
 '''
 
 
+g, l = globals(), dict(locals())
+for key in l:
+    g[key] = l[key]
+
+
+## Load extension and configurations via pytagomacsrc.
+config_file = None
+# Possible auto-selected configuration scripts,
+# earlier ones have precedence, we can only select one.
+files = []
+def add_files(var, *ps, multi = False):
+    if var == '~':
+        try:
+            # Get the home (also known as initial) directory of the real user
+            import pwd
+            var = pwd.getpwuid(os.getuid()).pw_dir
+        except:
+            return
+    else:
+        # Resolve environment variable or use empty string if none is selected
+        if (var is None) or (var in os.environ) and (not os.environ[var] == ''):
+            var = '' if var is None else os.environ[var]
+        else:
+            return
+    paths = [var]
+    # Split environment variable value if it is a multi valeu variable
+    if multi and os.pathsep in var:
+        paths = [v for v in var.split(os.pathsep) if not v == '']
+    # Add files according to patterns
+    for p in ps:
+        p = p.replace('/', os.sep).replace('%', 'pytagomacs')
+        for v in paths:
+            files.append(v + p)
+add_files('XDG_CONFIG_HOME', '/%/%rc', '/%rc')
+add_files('HOME',            '/.config/%/%rc', '/.config/%rc', '/.%rc')
+add_files('~',               '/.config/%/%rc', '/.config/%rc', '/.%rc')
+add_files('XDG_CONFIG_DIRS', '/%rc', multi = True)
+add_files(None,              '/etc/%rc')
+for file in files:
+    # If the file we exists,
+    if os.path.exists(file):
+        # select it,
+        config_file = file
+        # and stop trying files with lower precedence.
+        break
+# As the zeroth argument for the configuration script,
+# add the configurion script file. Just like the zeroth
+# command line argument is the invoked command.
+conf_opts = [config_file] + conf_opts
+if config_file is not None:
+    code = None
+    # Read configuration script file
+    with open(config_file, 'rb') as script:
+        code = script.read()
+    # Decode configurion script file and add a line break
+    # at the end to ensure that the last line is empty.
+    # If it is not, we will get errors.
+    code = code.decode('utf-8', 'error') + '\n'
+    # Compile the configuration script,
+    code = compile(code, config_file, 'exec')
+    # and run it, with it have the same
+    # globals as this module, so that it can
+    # not only use want we have defined, but
+    # also redefine it for us.
+    exec(code, g)
+
+
 
 class Jump():
     '''
@@ -98,8 +170,6 @@ class Jump():
         print(self.string, end = '')
 
 
-## TODO  colours should be configurable with rc file
-## TODO  ring limits should be configurable with rc file
 ## TODO  widthless characters should be ignored when calculating the size a text
 
 ## TODO  implement undo history
@@ -133,7 +203,7 @@ class TextArea():
             if height <= 0:  height += int(screen_size[0]) - top  + 1
         self.fields, self.datamap, self.left, self.top, self.width, self.height = fields, datamap, left, top, width - 1, height
         self.innerleft = len(max(self.fields, key = len)) + 3
-        self.killring, self.editring = Killring(), Editring()
+        self.killring, self.editring = Killring(limit = KILLRING_LIMIT), Editring()
         data = lambda field : datamap[field] if field in datamap else ''
         self.lines = [Line(self, self.fields[y], data(self.fields[y]), y) for y in range(len(self.fields))]
         self.areawidth = self.width - self.innerleft
