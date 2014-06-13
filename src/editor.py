@@ -3,7 +3,7 @@
 '''
 pytagomacs – An Emacs like key–value editor library for Python
 
-Copyright © 2013  Mattias Andrée (maandree@member.fsf.org)
+Copyright © 2013, 2014  Mattias Andrée (maandree@member.fsf.org)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ from line import *
 
 
 ## TODO  widthless characters should be ignored when calculating the size a text
-
 ## TODO  implement undo history
 ## 
 ##    Until the user has halted for 1 second (configurably) or has navigated using arrow keys or alternative key combinations,
@@ -80,7 +79,6 @@ def __override(self, insert, override = True):
 Line.override = __override
 
 
-
 class TextArea():
     '''
     GNU Emacs alike text area
@@ -105,7 +103,7 @@ class TextArea():
             if height <= 0:  height += int(screen_size[0]) - top  + 1
         self.fields, self.datamap, self.left, self.top, self.width, self.height = fields, datamap, left, top, width - 1, height
         self.innerleft = len(max(self.fields, key = len)) + 3
-        self.killring, self.editring = Killring(), Editring()
+        self.killring, self.editring = Killring(limit = KILLRING_LIMIT), Editring(limit = EDITRING_LIMIT)
         data = lambda field : datamap[field] if field in datamap else ''
         self.lines = [Line(self, self.fields[y], data(self.fields[y]), y) for y in range(len(self.fields))]
         self.areawidth = self.width - self.innerleft
@@ -362,7 +360,7 @@ class TextArea():
             elif d == ctrl('Y'):  edit(lambda L : L.yank(),  _('Killring is empty'))
             elif d == ctrl('R'):  self.editring.change_direction()
             elif d in (ctrl('_'), ctrl('U')):
-                ## TODO history break 
+                ## TODO history break
                 if self.editring.is_empty():
                     self.alert(_('Nothing to undo'))
                 else:
@@ -488,7 +486,7 @@ if __name__ == '__main__': # For testing
         return True
     area = None
     try:
-        area = TextArea(('a be se de e eff ge hå i ji kå ell emm enn o pe ku ärr ess te u ve dubbel-ve eks y säta å ä ö').split(' '), {}, 6, 4, 40, 10)
+        area = TextArea(('a be se de e eff ge hå i ji kå ell emm enn o pe ku ärr ess te u ve dubbel-ve eks y säta å ä ö').split(' '), {}, 6, 4, -6, -4)
         area.initialise(True)
         area.run(phonysaver)
     finally:

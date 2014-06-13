@@ -47,6 +47,16 @@ ALERT_COLOUR = None
 :str?  The colour of the alert message
 '''
 
+KILLRING_LIMIT = 50
+'''
+:int  The maximum size of the killring
+'''
+
+EDITRING_LIMIT = 100
+'''
+:int  The maximum size of the editring
+'''
+
 
 atleast = lambda x, minimum : (x is not None) and (x >= minimum)
 '''
@@ -87,47 +97,60 @@ class Jump():
         print(self.string, end = '')
 
 
-def parsefile(file):
-    '''
-    Parse a file name encoded with environment variables
-    
-    @param   file  The encoded file name
-    @return        The target file name, None if the environment variables are not declared
-    '''
-    if '$' in file:
-        buf = ''
-        esc = False
-        var = None
-        for c in file:
-            if esc:
-                buf += c
-                esc = False
-            elif var is not None:
-                if c == '/':
-                    var = os.environ[var] if var in os.environ else ''
-                    if len(var) == 0:
-                        return None
-                    buf += var + c
-                    var = None
-                else:
-                    var += c
-            elif c == '$':
-                var = ''
-            elif c == '\\':
-                esc = True
-            else:
-                buf += c
-        return buf
-    return file
-
-
-for file in ('$XDG_CONFIG_HOME/%/%rc', '$HOME/.config/%/%rc', '$HOME/.%rc', '/etc/%rc'):
-    file = parsefile(file.replace('%', 'pytagomacs'))
-    if (file is not None) and os.path.exists(file):
-        with open(file, 'rb') as rcfile:
-            code = rcfile.read().decode('utf8', 'replace') + '\n'
-            env = os.environ
-            code = compile(code, file, 'exec')
-            exec(code, globals())
+## Load extension and configurations via pytagomacsrc.
+config_file = None
+# Possible auto-selected configuration scripts,
+# earlier ones have precedence, we can only select one.
+files = []
+def add_files(var, *ps, multi = False):
+    if var == '~':
+        try:
+            # Get the home (also known as initial) directory of the real user
+            import pwd
+            var = pwd.getpwuid(os.getuid()).pw_dir
+        except:
+            return
+    else:
+        # Resolve environment variable or use empty string if none is selected
+        if (var is None) or (var in os.environ) and (not os.environ[var] == ''):
+            var = '' if var is None else os.environ[var]
+        else:
+            return
+    paths = [var]
+    # Split environment variable value if it is a multi valeu variable
+    if multi and os.pathsep in var:
+        paths = [v for v in var.split(os.pathsep) if not v == '']
+    # Add files according to patterns
+    for p in ps:
+        p = p.replace('/', os.sep).replace('%', 'pytagomacs')
+        for v in paths:
+            files.append(v + p)
+add_files('XDG_CONFIG_HOME', '/%/%rc', '/%rc')
+add_files('HOME',            '/.config/%/%rc', '/.config/%rc', '/.%rc')
+add_files('~',               '/.config/%/%rc', '/.config/%rc', '/.%rc')
+add_files('XDG_CONFIG_DIRS', '/%rc', multi = True)
+add_files(None,              '/etc/%rc')
+for file in files:
+    # If the file we exists,
+    if os.path.exists(file):
+        # select it,
+        config_file = file
+        # and stop trying files with lower precedence.
         break
+if config_file is not None:
+    code = None
+    # Read configuration script file
+    with open(config_file, 'rb') as script:
+        code = script.read()
+    # Decode configurion script file and add a line break
+    # at the end to ensure that the last line is empty.
+    # If it is not, we will get errors.
+    code = code.decode('utf-8', 'error') + '\n'
+    # Compile the configuration script,
+    code = compile(code, config_file, 'exec')
+    # and run it, with it have the same
+    # globals as this module, so that it can
+    # not only use want we have defined, but
+    # also redefine it for us.
+    exec(code, globals())
 
