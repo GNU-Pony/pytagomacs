@@ -330,6 +330,7 @@ class TextArea():
                     self.mark, self.x, self.offx = None, 0, 0
                 else:
                     self.y = self.offy + self.height - 3
+                    self.y = min(self.y, len(self.lines) - 1)
                     self.mark, self.x, self.offx = None, 0, 0
             elif d == -3:
                 if self.x == 0:  self.alert(_('At beginning'))
