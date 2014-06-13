@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+import os
 import sys
 import string
 from subprocess import Popen, PIPE
@@ -90,11 +91,6 @@ Check if a key stroke is a backspace key stroke
 '''
 
 
-g, l = globals(), dict(locals())
-for key in l:
-    g[key] = l[key]
-
-
 ## Load extension and configurations via pytagomacsrc.
 config_file = None
 # Possible auto-selected configuration scripts,
@@ -135,10 +131,9 @@ for file in files:
         config_file = file
         # and stop trying files with lower precedence.
         break
-# As the zeroth argument for the configuration script,
-# add the configurion script file. Just like the zeroth
-# command line argument is the invoked command.
-conf_opts = [config_file] + conf_opts
+#g, l = globals(), dict(locals())
+#for key in l:
+#    g[key] = l[key]
 if config_file is not None:
     code = None
     # Read configuration script file
@@ -154,7 +149,7 @@ if config_file is not None:
     # globals as this module, so that it can
     # not only use want we have defined, but
     # also redefine it for us.
-    exec(code, g)
+    exec(code, globals())
 
 
 
