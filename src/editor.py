@@ -54,12 +54,9 @@ def full_edit(self, func):
     # TODO reset
     return rc
 
-def partial_edit(self, func, with_return = True):
+def partial_edit(self, func):
     # TODO commit changes, if any, if one second has elapsed, and then reset
-    if with_return:
-        return func(self)
-    else:
-        func(self)
+    return func(self)
 
 break_edit = lambda self, func : full_edit(self, func)
 
@@ -75,7 +72,7 @@ def __move_point(self, delta):
 Line.move_point = __move_point
 
 def __override(self, insert, override = True):
-    partial_edit(self, lambda s : _override(s, insert, override), False);
+    partial_edit(self, lambda s : _override(s, insert, override));
 Line.override = __override
 
 
