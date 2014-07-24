@@ -89,6 +89,7 @@ class Line():
         if self.has_selection():
             (a, b) = self.area.get_selection()
             self.killring.add(self.text[a : b])
+            self.killring.reset()
             (a, b) = self.area.get_selection(True)
             text = self.text[self.area.offx:][:self.area.areawidth][a : b]
             print('%s%s' % (self.jump(a), text), end='')
