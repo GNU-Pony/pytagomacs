@@ -27,10 +27,10 @@ gettext.bindtextdomain('@PKGNAME@', '@LOCALEDIR@')
 gettext.textdomain('@PKGNAME@')
 _ = gettext.gettext
 
-from killring import *
-from editring import *
-from common import *
-from line import *
+from pytagomacs.killring import *
+from pytagomacs.editring import *
+from pytagomacs.common import *
+from pytagomacs.line import *
 
 
 
