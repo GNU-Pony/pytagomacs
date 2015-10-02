@@ -31,9 +31,9 @@ PKGNAME = pytagomacs
 MODULE = pytagomacs
 
 # The major version number of the current Python installation
-PY_MAJOR = 3
+PY_MAJOR = $(shell python -V | cut -d ' ' -f 2 | cut -d . -f 1)
 # The minor version number of the current Python installation
-PY_MINOR = 4
+PY_MINOR = $(shell python -V | cut -d ' ' -f 2 | cut -d . -f 2)
 # The version number of the current Python installation without a dot
 PY_VER = $(PY_MAJOR)$(PY_MINOR)
 # The version number of the current Python installation with a dot
@@ -41,6 +41,13 @@ PY_VERSION = $(PY_MAJOR).$(PY_MINOR)
 
 # The modules this library is comprised of
 SRC = common editor editring killring line
+
+# Filename extension for -OO optimised python files
+ifeq ($(shell test $(PY_VER) -ge 35 ; echo $$?),0)
+PY_OPT2_EXT = opt-2.pyc
+else
+PY_OPT2_EXT = pyo
+endif
 
 
 
@@ -51,13 +58,13 @@ all: compiled optimised
 compiled: $(foreach M,$(SRC),src/__pycache__/$(M).cpython-$(PY_VER).pyc)
 
 .PHONY: optimised
-optimised: $(foreach M,$(SRC),src/__pycache__/$(M).cpython-$(PY_VER).pyo)
+optimised: $(foreach M,$(SRC),src/__pycache__/$(M).cpython-$(PY_VER).$(PY_OPT2_EXT))
 
 
 src/__pycache__/%.cpython-$(PY_VER).pyc: src/%.py
 	python -m compileall $<
 
-src/__pycache__/%.cpython-$(PY_VER).pyo: src/%.py
+src/__pycache__/%.cpython-$(PY_VER).$(PY_OPT2_EXT): src/%.py
 	python -OO -m compileall $<
 
 
@@ -86,7 +93,7 @@ install-compiled: $(foreach M,$(SRC),src/__pycache__/$(M).cpython-$(PY_VER).pyc)
 	install -m644 $^ -- "$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__"
 
 .PHONY: install-optimised
-install-optimised: $(foreach M,$(SRC),src/__pycache__/$(M).cpython-$(PY_VER).pyo)
+install-optimised: $(foreach M,$(SRC),src/__pycache__/$(M).cpython-$(PY_VER).$(PY_OPT2_EXT))
 	install -dm755 -- "$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__"
 	install -m644 $^ -- "$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__"
 
@@ -111,7 +118,7 @@ uninstall:
 	-rm -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/LICENSE"
 	-rm -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)/COPYING"
 	-rmdir -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
-	-rm -- $(foreach M,$(SRC),"$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__/$(M).cpython-$(PY_VER).pyo")
+	-rm -- $(foreach M,$(SRC),"$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__/$(M).cpython-$(PY_VER).$(PY_OPT2_EXT)")
 	-rm -- $(foreach M,$(SRC),"$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__/$(M).cpython-$(PY_VER).pyc")
 	-rm -- $(foreach M,$(SRC),"$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/$(M).py")
 	-rmdir -- "$(DESTDIR)$(LIBDIR)/python$(PY_VERSION)/$(MODULE)/__pycache__/"
